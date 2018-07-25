@@ -24,61 +24,74 @@ Approach:
 /* if malloc ret array doesn't want to waste ret[0] if carry ==0
    it may need know final ret size then do malloc in the end
    and set ret[0] = 1 if carry ==1
+   Use big array as ret buffer
+
+   By testing the ret cannot allow ret=="0100"
+
+   may be improved by using direct map
+   int sum[2][2][2]={
+        {{0,1},{1,0}},
+        {{1,0},{0,1}}
+    };
+
+    int carry[2][2][2]={
+        {{0,0},{0,1}},
+        {{0,1},{1,1}}
+    };
 */
+
 char* addBinary(char* a, char* b) {
     //Q: non-empty definition? null or ""?
     //null check:no need due to precondition
-    
     char carry=0;
     int idxA=strlen(a)-1;
     int idxB=strlen(b)-1;
-    int longArrayIdx,smallArrayIdx;
-    char *longArray, *smallArray;
     char *ret=NULL;
     int retSize;
-    char tmp;
+    int tmp;
     
+    //a:the longer string, b:the shorter string
     if(idxA > idxB){
-        longArrayIdx = idxA;
-        smallArrayIdx = idxB;
-        longArray  = a;
-        smallArray = b;
         retSize = idxA;
     }else{
-        longArrayIdx  = idxB;
-        smallArrayIdx = idxA;
-        longArray  = b;
-        smallArray = a;    
         retSize = idxB;
+        
+        tmp  = idxA;
+        idxA = idxB;
+        idxB = tmp;
+
+        tmp=a;
+        a=b;
+        b=tmp;   
     }
 
-    for(;smallArrayIdx>=0;smallArrayIdx--,longArrayIdx--){
-        longArray[longArrayIdx]=longArray[longArrayIdx]-'0';
-        smallArray[smallArrayIdx] = smallArray[smallArrayIdx]-'0';
+    //add b to a,ends if b is gone through
+    for(;idxB>=0;idxB--,idxA--){
+        a[idxA]=a[idxA]-'0';
+        b[idxB]=b[idxB]-'0';
         
-        tmp=smallArray[smallArrayIdx]^longArray[longArrayIdx]^carry;
-        carry=(carry&smallArray[smallArrayIdx])|
-              (carry&longArray[longArrayIdx])|
-              (smallArray[smallArrayIdx]&longArray[longArrayIdx]);
-        longArray[longArrayIdx]=tmp+'0';
+        tmp=b[idxB]^a[idxA]^carry;
+        carry=(carry&b[idxB])|(carry&a[idxA])|(b[idxB]&a[idxA]);
+        a[idxA]=tmp+'0';
     }
     
-    for(;longArrayIdx>=0;longArrayIdx--){
+    //if has carry, add to a
+    for(;idxA>=0;idxA--){
         if (carry==0) break;
 
-        longArray[longArrayIdx]=longArray[longArrayIdx]-'0';
-        tmp=carry^longArray[longArrayIdx];
-        carry = carry&longArray[longArrayIdx];
-        longArray[longArrayIdx]=tmp+'0';
+        a[idxA]=a[idxA]-'0';
+        tmp=carry^a[idxA];
+        carry = carry&a[idxA];
+        a[idxA]=tmp+'0';
     }
     
     if(carry==1){
         ret=malloc(sizeof(char)*(retSize+3));
         ret[0]='1';
-        memcpy(&ret[1],longArray,retSize+2);
+        memcpy(&ret[1],a,retSize+2);
     }else{
         ret=malloc(sizeof(char)*(retSize+2));
-        memcpy(&ret[0],longArray,retSize+2);
+        memcpy(&ret[0],a,retSize+2);
     }
     
     return ret;
