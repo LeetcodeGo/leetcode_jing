@@ -20,26 +20,30 @@ Approach:
 
 ***************************************************************************************/
 
+/* 
+   - if malloc ret array doesn't want to waste ret[0] if carry ==0
+     it may need know final ret size then do malloc in the end
+     so it needs using big array as ret buffer
 
-/* if malloc ret array doesn't want to waste ret[0] if carry ==0
-   it may need know final ret size then do malloc in the end
-   and set ret[0] = 1 if carry ==1
-   Use big array as ret buffer
+   - This test doesn't allow padding zero
+     ret=="0100" => failed
+  
+   -  may be improved by using direct map, rather than adding + comparing
+      int sum[2][2][2]={
+            {{0,1},{1,0}},
+            {{1,0},{0,1}}
+        }; 
+       => this may be slower than do b[idxB]^a[idxA]^carry;
 
-   By testing the ret cannot allow ret=="0100"
+        int carry[2][2][2]={
+            {{0,0},{0,1}},
+            {{0,1},{1,1}}
+        };
 
-   may be improved by using direct map
-   int sum[2][2][2]={
-        {{0,1},{1,0}},
-        {{1,0},{0,1}}
-    };
-
-    int carry[2][2][2]={
-        {{0,0},{0,1}},
-        {{0,1},{1,1}}
-    };
+    - It's important to firstly done when b is added
+      It save a lot of time if size A >>> size B
+      In the next part, only need to care carry and A without concerning B
 */
-
 char* addBinary(char* a, char* b) {
     //Q: non-empty definition? null or ""?
     //null check:no need due to precondition
@@ -67,12 +71,14 @@ char* addBinary(char* a, char* b) {
 
     //add b to a,ends if b is gone through
     for(;idxB>=0;idxB--,idxA--){
-        a[idxA]=a[idxA]-'0';
-        b[idxB]=b[idxB]-'0';
+        a[idxA]= (a[idxA]-'0')+(b[idxB]-'0')+carry;
         
-        tmp=b[idxB]^a[idxA]^carry;
-        carry=(carry&b[idxB])|(carry&a[idxA])|(b[idxB]&a[idxA]);
-        a[idxA]=tmp+'0';
+        if (a[idxA]>1) carry=1;
+        else carry=0;
+        a[idxA] = a[idxA]&1;
+        //tmp=b[idxB]^a[idxA]^carry;
+        //carry=(carry&b[idxB])|(carry&a[idxA])|(b[idxB]&a[idxA]);
+        a[idxA]+='0';
     }
     
     //if has carry, add to a
