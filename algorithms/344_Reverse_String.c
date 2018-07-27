@@ -14,11 +14,12 @@ Complexity:
     Space:O(1)
 ***************************************************************************************/
 char* reverseString(char* s) {
+     if (s==NULL) return NULL;///TBA
+    
      int l = 0;
      int r = strlen(s)-1;
      char tmp;
-     
-     //TBA: if (s==NULL) return NULL;
+    
      while(l<r)
      {
          tmp = s[l];
